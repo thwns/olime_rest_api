@@ -1,5 +1,5 @@
 """
-Views for the recipe APIs
+Views for the track APIs
 """
 from drf_spectacular.utils import (
     extend_schema_view,
@@ -15,37 +15,47 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from core.models import (
-    Recipe,
-    Tag,
-    Ingredient,
+    Track,
+    Book,
+    Task,
 )
-from recipe import serializers
+from track import serializers
+from task import serializers as taskserializers
+from book import serializers as bookserializers
 
 
 @extend_schema_view(
     list=extend_schema(
         parameters=[
             OpenApiParameter(
-                'tags',
+                'books',
                 OpenApiTypes.STR,
-                description='Comma separated list of tag IDs to filter',
+                description='Comma separated list of book IDs to filter',
             ),
             OpenApiParameter(
-                'ingredients',
+                'tasks',
                 OpenApiTypes.STR,
-                description='Comma separated list of ingredient IDs to filter',
+                description='Comma separated list of task IDs to filter',
             ),
         ]
     )
 )
-class RecipeViewSet(viewsets.ModelViewSet):
-    """View for manage recipe APIs."""
-    serializer_class = serializers.RecipeDetailSerializer
-    queryset = Recipe.objects.all()
+class TrackAPIView(APIView):
+    def get(self, request):
+        tracks = Track.objects.all()
+        serializer = serializers.TrackSerializer(tracks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TrackViewSet(viewsets.ModelViewSet):
+    """View for manage task APIs."""
+    serializer_class = serializers.TrackDetailSerializer
+    queryset = Track.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -54,16 +64,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return [int(str_id) for str_id in qs.split(',')]
 
     def get_queryset(self):
-        """Retrieve recipes for authenticated user."""
-        tags = self.request.query_params.get('tags')
-        ingredients = self.request.query_params.get('ingredients')
+        """Retrieve tracks for authenticated user."""
+        books = self.request.query_params.get('books')
+        tasks = self.request.query_params.get('tasks')
         queryset = self.queryset
-        if tags:
-            tag_ids = self._params_to_ints(tags)
-            queryset = queryset.filter(tags__id__in=tag_ids)
-        if ingredients:
-            ingredient_ids = self._params_to_ints(ingredients)
-            queryset = queryset.filter(ingredients__id__in=ingredient_ids)
+        if books:
+            book_ids = self._params_to_ints(books)
+            queryset = queryset.filter(books__id__in=book_ids)
+        if tasks:
+            task_ids = self._params_to_ints(tasks)
+            queryset = queryset.filter(tasks__id__in=task_ids)
 
         return queryset.filter(
             user=self.request.user
@@ -72,21 +82,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         """Return the serializer class for request."""
         if self.action == 'list':
-            return serializers.RecipeSerializer
+            return serializers.TrackSerializer
         elif self.action == 'upload_image':
-            return serializers.RecipeImageSerializer
+            return serializers.TrackImageSerializer
 
         return self.serializer_class
 
     def perform_create(self, serializer):
-        """Create a new recipe."""
+        """Create a new track."""
         serializer.save(user=self.request.user)
 
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):
-        """Upload an image to recipe."""
-        recipe = self.get_object()
-        serializer = self.get_serializer(recipe, data=request.data)
+        """Upload an image to track."""
+        track = self.get_object()
+        serializer = self.get_serializer(track, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -106,7 +116,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ]
     )
 )
-class BaseRecipeAttrViewSet(mixins.DestroyModelMixin,
+class BaseTrackAttrViewSet(mixins.DestroyModelMixin,
                             mixins.UpdateModelMixin,
                             mixins.ListModelMixin,
                             viewsets.GenericViewSet):
@@ -121,20 +131,20 @@ class BaseRecipeAttrViewSet(mixins.DestroyModelMixin,
         )
         queryset = self.queryset
         if assigned_only:
-            queryset = queryset.filter(recipe__isnull=False)
+            queryset = queryset.filter(track__isnull=False)
 
         return queryset.filter(
             user=self.request.user
-        ).order_by('-name').distinct()
+        ).order_by('-track_name').distinct()
 
 
-class TagViewSet(BaseRecipeAttrViewSet):
-    """Manage tags in the database."""
-    serializer_class = serializers.TagSerializer
-    queryset = Tag.objects.all()
+class TaskViewSet(BaseTrackAttrViewSet):
+    """Manage tracks in the database."""
+    serializer_class = taskserializers.TaskSerializer
+    queryset = Task.objects.all()
 
 
-class IngredientViewSet(BaseRecipeAttrViewSet):
-    """Manage ingredients in the database."""
-    serializer_class = serializers.IngredientSerializer
-    queryset = Ingredient.objects.all()
+class BookViewSet(BaseTrackAttrViewSet):
+    """Manage books in the database."""
+    serializer_class = bookserializers.BookSerializer
+    queryset = Book.objects.all()

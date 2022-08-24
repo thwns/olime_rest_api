@@ -16,12 +16,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
-def recipe_image_file_path(instance, filename):
-    """Generate file path for new recipe image."""
+def track_image_file_path(instance, filename):
+    """Generate file path for new track image."""
     ext = os.path.splitext(filename)[1]
     filename = f'{uuid.uuid4()}{ext}'
 
-    return os.path.join('uploads', 'recipe', filename)
+    return os.path.join('uploads', 'track', filename)
 
 
 class UserManager(BaseUserManager):
@@ -79,17 +79,19 @@ class Profile(models.Model):
         return self.user.nickname
 
 
-class UserDate(models.Model):
+class User_Data(models.Model):
     track = models.ForeignKey(
-        'track',
+        'Track',
         on_delete=models.CASCADE,
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )
-    action_date =
-    order_major =
+    action_date = models.DateTimeField(default=timezone.now)
+    order_major = models.CharField(max_length=255)
+    order_minor = models.CharField(max_length=255)
+    is_done = models.BooleanField(default=False)
 
 
 class Track(models.Model):
@@ -101,24 +103,26 @@ class Track(models.Model):
     profile = models.ForeignKey(
         'Profile',
         on_delete=models.CASCADE,
-        blank=True
+        blank=True,
     )
     subject_major = models.CharField(max_length=255)
     subject_minor = models.CharField(max_length=255)
     target_test = models.CharField(max_length=255)
     target_grade = models.CharField(max_length=255)
     track_name = models.CharField(max_length=255)
-    book = models.CharField(max_length=255)
+    book = models.ForeignKey(
+        'Book',
+        on_delete=models.CASCADE,
+        blank=True,
+    )
     description = models.TextField(blank=True)
     link = models.CharField(max_length=255, blank=True)
-    followers = models.ManyToManyField('User', blank =True)
+    #followers = models.ManyToManyField('User', blank =True)
     followers_num = models.IntegerField()
     #comment_track = models.ManyToManyField('Comment_Track', blank=True)
     rating_avg = models.DecimalField(max_digits=5, decimal_places=2)
-    #task = models.ManyToManyField('Task')
-    tags = models.ManyToManyField('Tag')
-    ingredients = models.ManyToManyField('Ingredient')
-    image = models.ImageField(null=True, upload_to=recipe_image_file_path)
+    task = models.ManyToManyField('Task')
+    image = models.ImageField(null=True, upload_to=track_image_file_path)
     published_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -126,6 +130,7 @@ class Track(models.Model):
 
 
 class Task(models.Model):
+    track_id = models.IntegerField()
     order_major = models.CharField(max_length=255)
     order_minor = models.CharField(max_length=255)
     task_name = models.CharField(max_length=255)
@@ -136,7 +141,34 @@ class Task(models.Model):
     references = models.CharField(max_length=255)
 
 
-class Recipe(models.Model):
+class Book(models.Model):
+    title = models.CharField(max_length=255)
+    sub_title = models.CharField(max_length=255)
+    author = models.CharField(max_length=255)
+    image_url = models.CharField(max_length=255)
+    isbn = models.CharField(max_length=255)
+    publisher = models.CharField(max_length=255)
+    published_date = models.DateTimeField(default=timezone.now)
+
+
+class Comment_Track(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    comment = models.CharField(max_length=225)
+    rating = models.IntegerField()
+
+
+class Comment_Task(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    comment = models.CharField(max_length=225)
+
+
+'''class Recipe(models.Model):
     """Recipe object."""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -152,10 +184,11 @@ class Recipe(models.Model):
     image = models.ImageField(null=True, upload_to=recipe_image_file_path)
 
     def __str__(self):
-        return self.title
+        return self.title'''
 
-class Tag(models.Model):
-    """Tag for filtering recipes."""
+
+class Tag_Subject_Major(models.Model):
+    """Tag_Subject_Major for filtering tracks."""
     name = models.CharField(max_length=255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -166,8 +199,8 @@ class Tag(models.Model):
         return self.name
 
 
-class Ingredient(models.Model):
-    """Ingredient for recipes."""
+class Tag_Subject_Minor(models.Model):
+    """Tag_Subject_Minor for tracks."""
     name = models.CharField(max_length=255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -176,3 +209,28 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Tag_Target_Test(models.Model):
+    """Tag_Target_Test for tracks."""
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class Tag_Target_Grade(models.Model):
+    """Tag_Target_Grade for tracks."""
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return self.name
+

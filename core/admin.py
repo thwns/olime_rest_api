@@ -49,6 +49,10 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Profile)
-admin.site.register(models.Recipe)
-admin.site.register(models.Tag)
-admin.site.register(models.Ingredient)
+admin.site.register(models.User_Data)
+admin.site.register(models.Track)
+admin.site.register(models.Task)
+admin.site.register(models.Book)
+admin.site.register(models.Comment_Track)
+admin.site.register(models.Comment_Task)
+
