@@ -9,12 +9,12 @@ from track.serializers import TrackSerializer
 
 class UserDataSerializer(serializers.ModelSerializer):
     """Serializer for userdatas."""
-    track = TrackSerializer()
+    #track = TrackSerializer()
 
     class Meta:
         model = User_Data
         fields = [
-            'id', 'track', 'action_date','order_major', 'order_minor',
+            'id', 'track_id', 'action_date','order_major', 'order_minor',
             'is_done',
          ]
         read_only_fields = ['id']

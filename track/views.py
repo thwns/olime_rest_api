@@ -1,6 +1,8 @@
 """
 Views for the track APIs
 """
+from django_filters.rest_framework import DjangoFilterBackend
+
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
@@ -49,15 +51,29 @@ class TrackAPIView(APIView):
     def get(self, request):
         tracks = Track.objects.all()
         serializer = serializers.TrackSerializer(tracks, many=True)
+        filter_backends = [DjangoFilterBackend]
+        filterset_fields = ['subject_major', 'subject_minor', 'target_test', 'target_grade']
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class TrackAllViewSet(viewsets.ModelViewSet):
+    queryset = Track.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['subject_major', 'subject_minor', 'target_test', 'target_grade']
+
+    def get_serializer_class(self):
+        if self.action == 'list' or 'retrieve':
+            return serializers.TrackDetailSerializer
+
+
 class TrackViewSet(viewsets.ModelViewSet):
-    """View for manage task APIs."""
+    """View for manage track APIs."""
     serializer_class = serializers.TrackDetailSerializer
     queryset = Track.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['subject_major', 'subject_minor', 'target_test', 'target_grade']
 
     def _params_to_ints(self, qs):
         """Convert a list of strings to integers."""
