@@ -47,13 +47,6 @@ from book import serializers as bookserializers
         ]
     )
 )
-class TrackAPIView(APIView):
-    def get(self, request):
-        tracks = Track.objects.all()
-        serializer = serializers.TrackSerializer(tracks, many=True)
-        filter_backends = [DjangoFilterBackend]
-        filterset_fields = ['subject_major', 'subject_minor', 'target_test', 'target_grade']
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TrackAllViewSet(viewsets.ModelViewSet):
