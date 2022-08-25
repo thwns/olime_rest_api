@@ -1,5 +1,8 @@
 # olime_rest_api
 
+# runserver
+# python manage.py runserver
+
 # clear database
 # docker volume ls
 # olime_rest_api_dev-db-data
