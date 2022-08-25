@@ -80,14 +80,15 @@ class Profile(models.Model):
 
 
 class User_Data(models.Model):
-    track = models.ForeignKey(
+    '''track = models.ForeignKey(
         'Track',
         on_delete=models.CASCADE,
-    )
+    )'''
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )
+    track_id = models.IntegerField()
     action_date = models.DateTimeField(default=timezone.now)
     order_major = models.CharField(max_length=255)
     order_minor = models.CharField(max_length=255)

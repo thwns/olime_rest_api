@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'task',
     'userdata',
     'book',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
